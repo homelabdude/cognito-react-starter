@@ -28,12 +28,7 @@ jobs:
         run: npm test
 
       - name: Check Format
-        run: |
-          run: |
-          npx prettier --write .
-          echo "🔧 Prettier auto-fixed these files (if any):"
-          git --no-pager diff
-          npx prettier --check .
+        run: npx prettier --check .
 
       - name: Audit dependencies
         run: |
