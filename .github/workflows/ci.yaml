@@ -29,7 +29,7 @@ jobs:
 
       - name: Check Format
         run: |
-          npx prettier --check --loglevel=debug .
+          npx prettier --check --log-level debug .
 
       - name: Audit dependencies
         run: |
