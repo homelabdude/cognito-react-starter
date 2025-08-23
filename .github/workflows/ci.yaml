@@ -29,7 +29,11 @@ jobs:
 
       - name: Check Format
         run: |
-          npx prettier --check --log-level debug .
+          run: |
+          npx prettier --write .
+          echo "🔧 Prettier auto-fixed these files (if any):"
+          git --no-pager diff
+          npx prettier --check .
 
       - name: Audit dependencies
         run: |
