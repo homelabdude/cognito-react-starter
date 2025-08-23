@@ -28,7 +28,8 @@ jobs:
         run: npm test
 
       - name: Check Format
-        run: npx prettier --check .
+        run: |
+          npx prettier --check --loglevel debug .
 
       - name: Audit dependencies
         run: |
