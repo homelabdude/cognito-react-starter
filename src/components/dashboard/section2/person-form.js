@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const PersonForm = ({
   formData,
@@ -14,9 +14,11 @@ const PersonForm = ({
     const { id, value } = e.target;
     let newValue = value;
 
-    // Validate input based on the field ID
     if (id === "firstName" || id === "lastName" || id === "tag") {
       newValue = value.replace(/[^a-zA-Z\s]/g, "");
+      if (newValue.length > 20) {
+        newValue = newValue.substring(0, 20);
+      }
     } else if (id === "age") {
       newValue = value.replace(/\D/g, "");
       if (
@@ -32,138 +34,147 @@ const PersonForm = ({
       }
     }
 
-    setFormData({
-      ...formData,
-      [id]: newValue,
-    });
+    setFormData({ ...formData, [id]: newValue });
   };
 
   return (
     <div
-      className="card border-1 m-4 overflow-scroll"
+      className="card border-0 shadow-sm overflow-hidden"
       style={{ minHeight: "75vh", maxHeight: "75vh" }}
     >
-      <div className="card-body p-4">
-        <h5 className="card-title text-purple">
-          {mode === "add" ? "Add Person" : "Search Person"}
-        </h5>
-        <ul className="nav nav-tabs mb-3" style={{ borderBottom: "none" }}>
-          <li className="nav-item">
-            <button
-              className={`nav-link ${mode === "add" ? "btn btn-dark active" : "btn btn-outline-dark"}`}
-              style={{
-                borderRadius: "0px",
-                color: mode === "add" ? "#fff" : "#343a40",
-                backgroundColor: mode === "add" ? "#343a40" : "transparent",
-                borderColor: "#343a40",
-                textDecoration: "none",
-                padding: "5px 10px",
-                fontSize: "14px",
-              }}
-              onClick={() => setMode("add")}
+      <div className="card-body p-3 d-flex flex-column overflow-auto">
+        <div className="p-1 pb-2">
+          <h5 className="mb-1 fw-semibold text-primary">
+            {mode === "add" ? "Add Person" : "Search Person"}
+          </h5>
+          <p className="text-muted mb-0 small">
+            {mode === "add"
+              ? "Create a new person record"
+              : "Find existing person records"}
+          </p>
+        </div>
+
+        <div className="btn-group mb-3 w-100" role="group">
+          <button
+            type="button"
+            className={`btn ${mode === "add" ? "btn-primary" : "btn-outline-secondary"}`}
+            onClick={() => setMode("add")}
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            className={`btn ${mode === "search" ? "btn-primary" : "btn-outline-secondary"}`}
+            onClick={() => setMode("search")}
+          >
+            Search
+          </button>
+        </div>
+
+        <form onSubmit={(e) => handleSubmit(e, mode)} className="flex-grow-1">
+          <div className="mb-2">
+            <label
+              htmlFor="firstName"
+              className="form-label fw-medium mb-1 small"
             >
-              Add
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link ${mode === "search" ? "btn btn-dark active" : "btn btn-outline-dark"}`}
-              style={{
-                borderRadius: "0px",
-                color: mode === "search" ? "#fff" : "#343a40",
-                backgroundColor: mode === "search" ? "#343a40" : "transparent",
-                borderColor: "#343a40",
-                textDecoration: "none",
-                padding: "5px 10px",
-                fontSize: "14px",
-              }}
-              onClick={() => setMode("search")}
-            >
-              Search
-            </button>
-          </li>
-        </ul>
-        <form onSubmit={(e) => handleSubmit(e, mode)}>
-          <div className="mb-2 mt-4">
-            <label htmlFor="firstName" className="form-label">
-              First Name
+              First Name{" "}
+              {mode === "add" && <span className="text-danger">*</span>}
             </label>
             <input
               type="text"
-              className="form-control"
+              className="form-control form-control-sm"
               id="firstName"
               value={formData.firstName}
               onChange={(e) => handleChange(e, formData, setFormData)}
               required
+              placeholder="Enter first name"
             />
           </div>
+
           {mode === "add" && (
             <>
               <div className="mb-2">
-                <label htmlFor="lastName" className="form-label">
+                <label
+                  htmlFor="lastName"
+                  className="form-label fw-medium mb-1 small"
+                >
                   Last Name
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control form-control-sm"
                   id="lastName"
                   value={formData.lastName}
                   onChange={(e) => handleChange(e, formData, setFormData)}
+                  placeholder="Enter last name"
                 />
               </div>
               <div className="mb-2">
-                <label htmlFor="age" className="form-label">
-                  Age
+                <label
+                  htmlFor="age"
+                  className="form-label fw-medium mb-1 small"
+                >
+                  Age <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control form-control-sm"
                   id="age"
                   value={formData.age}
                   onChange={(e) => handleChange(e, formData, setFormData)}
                   required
+                  placeholder="Enter age (0-120)"
                 />
               </div>
             </>
           )}
+
           <div className="mb-2">
-            <label htmlFor="phoneNumber" className="form-label">
-              Phone Number
+            <label
+              htmlFor="phoneNumber"
+              className="form-label fw-medium mb-1 small"
+            >
+              Phone Number{" "}
+              {mode === "add" && <span className="text-danger">*</span>}
             </label>
             <input
               type="text"
-              className="form-control"
+              className="form-control form-control-sm"
               id="phoneNumber"
               value={formData.phoneNumber}
               onChange={(e) => handleChange(e, formData, setFormData)}
               required
+              placeholder="Enter phone number"
             />
           </div>
+
           {mode === "add" && (
             <div className="mb-2">
-              <label htmlFor="tag" className="form-label">
+              <label htmlFor="tag" className="form-label fw-medium mb-1 small">
                 Tag
               </label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control form-control-sm"
                 id="tag"
                 value={formData.tag}
                 onChange={(e) => handleChange(e, formData, setFormData)}
+                placeholder="Enter tag (optional)"
               />
             </div>
           )}
+
           <div className="d-flex gap-2 mt-3">
             <button
               type="submit"
-              className="btn btn-success btn-sm flex-grow-1"
+              className="btn btn-sm flex-grow-1 btn-primary"
             >
-              {mode === "add" ? "Add" : "Search"}
+              {mode === "add" ? "Add Person" : "Search"}
             </button>
             {mode === "search" && (
               <button
                 type="button"
-                className="btn btn-warning btn-sm flex-grow-1"
+                className="btn btn-sm btn-outline-secondary flex-grow-1"
                 onClick={resetSearch}
               >
                 Reset
@@ -171,11 +182,20 @@ const PersonForm = ({
             )}
           </div>
         </form>
-        {successMessage && (
-          <span className="text-success mt-3">{successMessage}</span>
-        )}
-        {errorMessage && (
-          <span className="text-danger mt-3">{errorMessage}</span>
+
+        {(successMessage || errorMessage) && (
+          <div className="mt-2">
+            {successMessage && (
+              <div className="alert alert-success py-2 mb-0 small" role="alert">
+                {successMessage}
+              </div>
+            )}
+            {errorMessage && (
+              <div className="alert alert-danger py-2 mb-0 small" role="alert">
+                {errorMessage}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

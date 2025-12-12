@@ -1,38 +1,25 @@
-import React from "react";
 import { Link } from "react-router";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 const NotFound = () => {
   return (
-    <div
-      className="container-fluid"
-      style={{ fontFamily: "JetBrains Mono, monospace" }}
-    >
+    <div className="container-fluid p-0">
       {/* Top Banner */}
-      <div className="row">
-        <div
-          className="col top-banner d-flex justify-content-center align-items-center"
-          style={{
-            backgroundColor: "#8B0000",
-            color: "white",
-            height: "50vh",
-          }}
-        >
-          <h1>404 - Oops! The page you are looking for doesn't exist</h1>
+      <div className="row g-0">
+        <div className="col bg-danger d-flex justify-content-center align-items-center text-white vh-50">
+          <h1 className="text-center px-3">
+            404 - Oops! The page you are looking for doesn't exist
+          </h1>
         </div>
       </div>
 
       {/* Message */}
       <div className="row mt-5">
         <div
-          className="col top-banner d-flex justify-content-center align-items-center"
-          style={{
-            color: "#8B0000",
-            height: "30vh",
-          }}
+          className="col d-flex justify-content-center align-items-center text-danger"
+          style={{ height: "30vh" }}
         >
           if you are lost,{" "}
-          <Link to="/" style={{ fontFamily: "JetBrains Mono, monospace" }}>
+          <Link to="/" className="text-danger fw-bold">
             Go Home
           </Link>
           .

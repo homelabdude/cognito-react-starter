@@ -1,46 +1,47 @@
-import React from "react";
-
-/* Code to construct the display for ID and access token details */
-
 const SectionOne = ({ tokens }) => (
-  <div className="row">
-    <h3 className="m-4 text-dark">
-      This section has the sample code to get the tokens from the Auth object
-    </h3>
-
-    <div className="col-lg-7">
-      <div className="card border-0 ml-4">
-        <div className="card-body p-4">
-          {/* Code to deconstruct the ID Token  */}
-          <h5 className="card-title text-purple">ID details from Cognito</h5>
-          {tokens.idToken && tokens.idToken.payload && (
-            <table>
-              <tbody>
-                {Object.entries(
-                  JSON.parse(JSON.stringify(tokens.idToken.payload)),
-                ).map(([key, value]) => (
-                  <tr key={key}>
-                    <td>
-                      <b>{key}</b>
-                    </td>
-                    <td className="text-secondary">{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+  <div className="p-4 bg-body-secondary min-vh-100">
+    <div className="bg-primary text-white p-3 px-4 rounded-3 mb-4 shadow-sm">
+      <h3 className="mb-2 fw-bold">Token Information</h3>
+      <p className="mb-0 opacity-75">
+        View ID token details and access token from AWS Cognito authentication
+      </p>
     </div>
 
-    <div className="col-lg-5">
-      <div className="card border-0 ml-4">
-        <div className="card-body p-4">
-          {/* Code to display the Auth Token  */}
-          <h5 className="card-title text-purple">Access Token</h5>
-          <p className="card-text text-secondary">
-            {"Bearer " + tokens.accessToken}
-          </p>
+    <div className="row g-4">
+      <div className="col-lg-7">
+        <div className="card border-0 shadow-sm h-100">
+          <div className="card-body p-4">
+            <h5 className="text-primary fw-semibold mb-3">ID Token Details</h5>
+            {tokens.idToken && tokens.idToken.payload && (
+              <div className="table-responsive">
+                <table className="table table-sm table-hover">
+                  <tbody>
+                    {Object.entries(
+                      JSON.parse(JSON.stringify(tokens.idToken.payload)),
+                    ).map(([key, value]) => (
+                      <tr key={key}>
+                        <td className="fw-semibold w-25">{key}</td>
+                        <td className="text-secondary text-break small">
+                          {value}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="col-lg-5">
+        <div className="card border-0 shadow-sm h-100">
+          <div className="card-body p-4">
+            <h5 className="text-primary fw-semibold mb-3">Access Token</h5>
+            <p className="text-secondary mb-0 text-break small lh-base">
+              Bearer {tokens.accessToken?.toString?.() || ""}
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -5,16 +5,17 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-
 import awsExports from "./aws-exports";
 import Home from "./components/home/home";
 import Dashboard from "./components/dashboard/dashboard";
 import NotFound from "./components/notfound/notfound";
+import { ThemeProvider } from "./context/ThemeContext";
+import DarkModeToggle from "./components/DarkModeToggle";
 
 const headingStyle = {
-  fontFamily: "JetBrains Mono, monospace",
   fontSize: "1.5em",
-  color: "#343a40",
+  color: "#667eea",
+  fontWeight: "600",
   paddingLeft: "1em",
   paddingRight: "1em",
   paddingTop: "1em",
@@ -42,28 +43,31 @@ const components = {
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Routes that require authentication */}
-        <Route
-          path="/dashboard"
-          element={
-            <Authenticator hideSignUp components={components}>
-              {({ signOut, user }) =>
-                user ? (
-                  <Dashboard signOut={signOut} user={user} />
-                ) : (
-                  <Navigate to="/dashboard" />
-                )
-              }
-            </Authenticator>
-          }
-        />
+    <ThemeProvider>
+      <Router>
+        <DarkModeToggle />
+        <Routes>
+          {/* Routes that require authentication */}
+          <Route
+            path="/dashboard"
+            element={
+              <Authenticator hideSignUp components={components}>
+                {({ signOut, user }) =>
+                  user ? (
+                    <Dashboard signOut={signOut} user={user} />
+                  ) : (
+                    <Navigate to="/dashboard" />
+                  )
+                }
+              </Authenticator>
+            }
+          />
 
-        {/* Routes that don't require authentication */}
-        <Route path="/" element={<Home />} />
-        <Route path="/*" element={<NotFound />} />
-      </Routes>
-    </Router>
+          {/* Routes that don't require authentication */}
+          <Route path="/" element={<Home />} />
+          <Route path="/*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }

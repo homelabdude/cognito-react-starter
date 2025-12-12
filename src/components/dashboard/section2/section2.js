@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Table from "./table";
 import { formatDate } from "../../../utils/utils";
-import PersonForm from "./person-form"; // Adjust the import path as needed
+import PersonForm from "./person-form";
 
 const apiUrl = process.env.REACT_APP_BACKEND_APP_API_BASE_URL;
 
@@ -30,13 +30,13 @@ const SectionTwo = ({ tokens }) => {
 
         const queryParams = new URLSearchParams({
           page: page,
-          size: 10,
+          size: 9,
           ...searchParams,
         }).toString();
 
         const response = await axios.get(`${apiUrl}v1/persons?${queryParams}`, {
           headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
+            Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
           },
         });
 
@@ -60,7 +60,7 @@ const SectionTwo = ({ tokens }) => {
     try {
       const response = await axios.post(`${apiUrl}v1/persons`, formData, {
         headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
+          Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
         },
       });
       if (response.status === 200) {
@@ -75,7 +75,7 @@ const SectionTwo = ({ tokens }) => {
             phoneNumber: "",
             tag: "",
           });
-        }, 2000);
+        }, 1000);
       }
       fetchData();
     } catch (error) {
@@ -92,7 +92,7 @@ const SectionTwo = ({ tokens }) => {
     try {
       const response = await axios.delete(`${apiUrl}v1/persons/${id}`, {
         headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
+          Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
         },
       });
       if (response.status === 200) {
@@ -131,7 +131,6 @@ const SectionTwo = ({ tokens }) => {
     if (mode === "add") {
       postData();
     } else {
-      // Build the search parameters
       fetchData(0, {
         name: formData.firstName,
         phone: formData.phoneNumber,
@@ -140,60 +139,76 @@ const SectionTwo = ({ tokens }) => {
   };
 
   return (
-    <div className="row">
-      <h3 className="m-4 text-dark">
-        This section has the code to use tokens from the Auth object and make
-        API calls
-      </h3>
-      <div className="col-lg-4">
-        <PersonForm
-          formData={formData}
-          setFormData={setFormData}
-          handleSubmit={handleSubmit}
-          successMessage={successMessage}
-          errorMessage={errorMessage}
-          resetSearch={() => {
-            setFormData({
-              firstName: "",
-              lastName: "",
-              age: "",
-              phoneNumber: "",
-              tag: "",
-            });
-            fetchData();
-          }}
-        />
+    <div className="container-fluid p-4 bg-body-secondary min-vh-100">
+      <div className="mb-4">
+        <div className="bg-primary text-white p-3 px-4 rounded-3 mb-4 shadow-sm">
+          <h3 className="mb-2 fw-bold">Person Management</h3>
+          <p className="mb-0 opacity-75">
+            Manage person records with authentication and API integration
+          </p>
+        </div>
       </div>
-      <div className="col-lg-7">
-        {loading ? (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ minHeight: "75vh" }}
-          >
-            <div className="spinner-border text-secondary" role="status"></div>
-          </div>
-        ) : (
-          <Table
-            title="Persons"
-            headings={[
-              "First Name",
-              "Last Name",
-              "Age",
-              "Phone Number",
-              "Created",
-            ]}
-            importantHeadings={["First Name", "Phone Number"]} // Only these are showing in mobile layouts
-            importantKeys={["firstName", "phoneNumber"]} // Only these are showing in mobile layouts
-            data={persons}
-            excludedKeys={["id", "tag"]}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            deleteItem={deleteItem}
-            updateData={updateData}
-            tokens={tokens}
+
+      <div className="row g-4">
+        <div className="col-lg-4">
+          <PersonForm
+            formData={formData}
+            setFormData={setFormData}
+            handleSubmit={handleSubmit}
+            successMessage={successMessage}
+            errorMessage={errorMessage}
+            resetSearch={() => {
+              setFormData({
+                firstName: "",
+                lastName: "",
+                age: "",
+                phoneNumber: "",
+                tag: "",
+              });
+              fetchData();
+            }}
           />
-        )}
+        </div>
+
+        <div className="col-lg-8">
+          {loading ? (
+            <div
+              className="card border-0 shadow-sm d-flex justify-content-center align-items-center"
+              style={{ minHeight: "75vh" }}
+            >
+              <div className="text-center">
+                <div
+                  className="spinner-border spinner-border-lg text-primary mb-3"
+                  role="status"
+                >
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="text-muted">Loading persons...</p>
+              </div>
+            </div>
+          ) : (
+            <Table
+              title="Persons"
+              headings={[
+                "First Name",
+                "Last Name",
+                "Age",
+                "Phone Number",
+                "Created",
+              ]}
+              importantHeadings={["First Name", "Phone Number"]}
+              importantKeys={["firstName", "phoneNumber"]}
+              data={persons}
+              excludedKeys={["id", "tag"]}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              deleteItem={deleteItem}
+              updateData={updateData}
+              tokens={tokens}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

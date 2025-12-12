@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Navbar, Nav, NavDropdown, NavLink } from "react-bootstrap";
+import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { fetchAuthSession } from "aws-amplify/auth";
-
 import SectionOne from "./section1/section1";
 import SectionTwo from "./section2/section2";
 
 const Dashboard = ({ signOut, user }) => {
   const navigate = useNavigate();
   const [activeNavItem, setActiveNavItem] = useState("section1");
+
   const handleNavItemClick = (navItem) => {
     setActiveNavItem(navItem);
   };
 
   const [tokens, setTokens] = useState({ accessToken: "", idToken: "" });
+
   useEffect(() => {
     const getTokens = async () => {
       try {
@@ -31,46 +32,45 @@ const Dashboard = ({ signOut, user }) => {
   };
 
   return (
-    <div>
-      <Navbar bg="dark" variant="dark">
-        <Nav
-          className="me-auto"
-          style={{
-            fontSize: "14px",
-            fontFamily: "JetBrains Mono, monospace",
-            marginLeft: "1em",
-          }}
-        >
-          <NavLink onClick={handleHomeClick}>[Home]</NavLink>
-          <NavLink
+    <div className="min-vh-100 bg-body-secondary">
+      <Navbar variant="dark" className="navbar-custom shadow-sm">
+        <Nav className="me-auto ms-3 small">
+          <Nav.Link onClick={handleHomeClick} className="text-white-50">
+            [Home]
+          </Nav.Link>
+          <Nav.Link
             onClick={() => handleNavItemClick("section1")}
-            active={activeNavItem === "section1"}
+            className={
+              activeNavItem === "section1"
+                ? "text-white border-bottom border-2"
+                : "text-white-50"
+            }
           >
             [Section 1]
-          </NavLink>
-          <NavLink
+          </Nav.Link>
+          <Nav.Link
             onClick={() => handleNavItemClick("section2")}
-            active={activeNavItem === "section2"}
+            className={
+              activeNavItem === "section2"
+                ? "text-white border-bottom border-2"
+                : "text-white-50"
+            }
           >
             [Section 2]
-          </NavLink>
+          </Nav.Link>
         </Nav>
-        <Nav className="ms-auto">
+        <Nav className="ms-auto me-3">
           <NavDropdown
-            style={{
-              fontSize: "18px",
-              fontFamily: "JetBrains Mono, monospace",
-              marginRight: "1em",
-            }}
-            title={<span className="text-light">{user.username}</span>}
-            id="basic-nav-dropdown"
+            title={<span className="text-white">{user.username}</span>}
+            id="user-dropdown"
             align="end"
           >
             <NavDropdown.Item onClick={signOut}>Sign out</NavDropdown.Item>
           </NavDropdown>
         </Nav>
       </Navbar>
-      <div className="main-content">
+
+      <div>
         {activeNavItem === "section1" && <SectionOne tokens={tokens} />}
         {activeNavItem === "section2" && <SectionTwo tokens={tokens} />}
       </div>

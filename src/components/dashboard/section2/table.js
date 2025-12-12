@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import axios from "axios";
 import PersonDetails from "./person-details";
@@ -28,7 +28,7 @@ const Table = ({
     try {
       const response = await axios.get(`${apiUrl}v1/persons/${id}`, {
         headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
+          Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
         },
       });
       setSelectedPerson(response.data);
@@ -48,7 +48,6 @@ const Table = ({
     const { name, value } = e.target;
     let newValue = value;
 
-    // Validate inputs based on the field name same as the one in person-form
     if (name === "firstName" || name === "lastName" || name === "tag") {
       newValue = value.replace(/[^a-zA-Z\s]/g, "");
     } else if (name === "age") {
@@ -66,10 +65,7 @@ const Table = ({
       }
     }
 
-    setEditablePerson((prevPerson) => ({
-      ...prevPerson,
-      [name]: newValue,
-    }));
+    setEditablePerson((prevPerson) => ({ ...prevPerson, [name]: newValue }));
   };
 
   const handleUpdate = async () => {
@@ -79,7 +75,7 @@ const Table = ({
         editablePerson,
         {
           headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
+            Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
           },
         },
       );
@@ -93,21 +89,28 @@ const Table = ({
   };
 
   const renderCell = (item, key) => (
-    <td key={key} className="text-secondary p-1">
+    <td key={key} className="py-2 px-2 small">
       {key === "firstName" ? (
         <button
-          className="btn btn-link p-0 m-0 text-primary"
+          className="btn btn-link p-0 m-0 text-decoration-none text-primary fw-medium"
           onClick={() => handleNameClick(item.id)}
         >
           {item[key]}
         </button>
       ) : (
-        item[key]
+        <span className="text-secondary">{item[key]}</span>
       )}
     </td>
   );
 
-  const renderHeading = (heading, index) => <th key={index}>{heading}</th>;
+  const renderHeading = (heading, index) => (
+    <th
+      key={index}
+      className="py-2 px-2 fw-semibold text-uppercase text-muted border-bottom small"
+    >
+      {heading}
+    </th>
+  );
 
   const renderMobileCell = (item, key) => {
     if (importantKeys && importantKeys.length > 0) {
@@ -132,7 +135,6 @@ const Table = ({
   };
 
   const renderDesktopCell = (item, key) => renderCell(item, key);
-
   const renderDesktopHeading = (heading, index) =>
     renderHeading(heading, index);
 
@@ -140,57 +142,70 @@ const Table = ({
 
   const renderTable = () => (
     <div
-      className="card border-1 m-4 d-flex flex-column overflow-scroll"
+      className="card border-0 shadow-sm overflow-hidden"
       style={{ minHeight: "75vh", maxHeight: "75vh" }}
     >
-      <div className="card-body p-4 flex-grow-1 d-flex flex-column">
-        <h5 className="card-title text-purple">{title}</h5>
-        <div className="flex-grow-1 overflow-auto">
-          <table className="table mb-0">
-            <thead>
-              <tr>
-                {isMobile
-                  ? headings.map((heading, index) =>
-                      renderMobileHeading(heading, index),
-                    )
-                  : headings.map((heading, index) =>
-                      renderDesktopHeading(heading, index),
-                    )}
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, index) => (
-                <tr key={index} className="p-0">
-                  {Object.keys(item)
-                    .filter((key) => !excludedKeys.includes(key))
-                    .map((key) =>
-                      isMobile
-                        ? renderMobileCell(item, key)
-                        : renderDesktopCell(item, key),
-                    )}
-                  <td className="p-1">
-                    <button
-                      className="btn btn-link p-0 m-0 text-danger"
-                      style={{ verticalAlign: "middle" }}
-                      onClick={() => deleteItem(item.id)}
-                    >
-                      <FaTrash style={{ margin: 0, padding: 0 }} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="card-body p-3 d-flex flex-column h-100">
+        <div className="p-1 pb-2">
+          <h5 className="mb-1 fw-semibold text-primary">{title}</h5>
         </div>
-        <div className="d-flex justify-content-center mt-3">
+
+        <div className="flex-grow-1 overflow-auto">
+          {data.length === 0 ? (
+            <div className="text-center py-5">
+              <p className="text-muted mb-0">No records found</p>
+            </div>
+          ) : (
+            <table className="table table-hover mb-0">
+              <thead className="sticky-top bg-body">
+                <tr>
+                  {isMobile
+                    ? headings.map((heading, index) =>
+                        renderMobileHeading(heading, index),
+                      )
+                    : headings.map((heading, index) =>
+                        renderDesktopHeading(heading, index),
+                      )}
+                  <th
+                    className="py-2 px-2 border-bottom"
+                    style={{ width: "50px" }}
+                  ></th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((item, index) => (
+                  <tr key={index}>
+                    {Object.keys(item)
+                      .filter((key) => !excludedKeys.includes(key))
+                      .map((key) =>
+                        isMobile
+                          ? renderMobileCell(item, key)
+                          : renderDesktopCell(item, key),
+                      )}
+                    <td className="py-2 px-2 text-center">
+                      <button
+                        className="btn btn-link p-0 m-0 text-danger"
+                        onClick={() => deleteItem(item.id)}
+                        title="Delete"
+                      >
+                        <FaTrash size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="border-top p-2 bg-body-tertiary">
           <nav aria-label="Page navigation">
-            <ul className="pagination pagination-sm">
+            <ul className="pagination pagination-sm mb-0 justify-content-center">
               <li
                 className={`page-item ${currentPage === 0 ? "disabled" : ""}`}
               >
                 <button
-                  className="page-link"
+                  className="page-link small"
                   onClick={() => onPageChange(0)}
                   disabled={currentPage === 0}
                 >
@@ -201,7 +216,7 @@ const Table = ({
                 className={`page-item ${currentPage === 0 ? "disabled" : ""}`}
               >
                 <button
-                  className="page-link"
+                  className="page-link small"
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage === 0}
                 >
@@ -209,19 +224,15 @@ const Table = ({
                 </button>
               </li>
               <li className="page-item disabled">
-                <span className="page-link">
-                  Page {currentPage + 1} of {totalPages}
+                <span className="page-link small">
+                  Page {currentPage + 1} of {totalPages || 1}
                 </span>
               </li>
               <li
-                className={`page-item ${
-                  totalPages === 0 || currentPage === totalPages - 1
-                    ? "disabled"
-                    : ""
-                }`}
+                className={`page-item ${totalPages === 0 || currentPage === totalPages - 1 ? "disabled" : ""}`}
               >
                 <button
-                  className="page-link"
+                  className="page-link small"
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={totalPages === 0 || currentPage === totalPages - 1}
                 >
@@ -229,14 +240,10 @@ const Table = ({
                 </button>
               </li>
               <li
-                className={`page-item ${
-                  totalPages === 0 || currentPage === totalPages - 1
-                    ? "disabled"
-                    : ""
-                }`}
+                className={`page-item ${totalPages === 0 || currentPage === totalPages - 1 ? "disabled" : ""}`}
               >
                 <button
-                  className="page-link"
+                  className="page-link small"
                   onClick={() => onPageChange(totalPages - 1)}
                   disabled={totalPages === 0 || currentPage === totalPages - 1}
                 >
