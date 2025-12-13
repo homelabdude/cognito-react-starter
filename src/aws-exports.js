@@ -1,7 +1,7 @@
 const awsConfig = {
-  REGION: "us-east-1",
-  USER_POOL_ID: "us-east-1_xx00xxxX",
-  USER_POOL_APP_CLIENT_ID: "<client_id>",
+  REGION: process.env.REACT_APP_AWS_REGION,
+  USER_POOL_ID: process.env.REACT_APP_USER_POOL_ID,
+  USER_POOL_APP_CLIENT_ID: process.env.REACT_APP_USER_POOL_APP_CLIENT_ID,
 };
 
 export default awsConfig;

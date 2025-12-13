@@ -36,6 +36,18 @@
   border-color: var(--accent-hover) !important;
 }
 
+.btn-outline-primary {
+  color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  color: #ffffff !important;
+}
+
 /* Header sections */
 .bg-primary {
   background: linear-gradient(

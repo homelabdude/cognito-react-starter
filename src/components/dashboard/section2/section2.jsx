@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Table from "./table.jsx";
 import { formatDate } from "../../../utils/utils";
 import PersonForm from "./person-form.jsx";
+import PersonDetailCard from "./person-detail-card.jsx";
 import { usePersonsApi } from "../../../hooks/usePersonsApi";
 import { useToast } from "../../../hooks/useToast";
 import Toast from "../../Toast.jsx";
@@ -32,6 +33,8 @@ const SectionTwo = ({ tokens }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [activeSearchParams, setActiveSearchParams] = useState({});
+  const [selectedPersonForView, setSelectedPersonForView] = useState(null);
+  const [viewMode, setViewMode] = useState("table"); // "table" or "detail"
 
   // ----------- API Calls -----------
   const fetchData = useCallback(
@@ -125,6 +128,22 @@ const SectionTwo = ({ tokens }) => {
 
   const hasActiveFilters = Object.keys(activeSearchParams).length > 0;
 
+  const handlePersonRowClick = async (id) => {
+    try {
+      const person = await fetchPersonById(id);
+      setSelectedPersonForView(person);
+      setViewMode("detail");
+    } catch (error) {
+      console.error("Error fetching person details:", error);
+      showError("Error loading person details. Please try again.");
+    }
+  };
+
+  const handleBackToTable = () => {
+    setViewMode("table");
+    setSelectedPersonForView(null);
+  };
+
   return (
     <div className="container-fluid p-4 bg-body-secondary min-vh-100">
       <Toast
@@ -144,59 +163,73 @@ const SectionTwo = ({ tokens }) => {
       </div>
 
       <div className="row g-4">
-        <div className="col-lg-3">
-          <PersonForm
-            formData={formData}
-            setFormData={setFormData}
-            handleSubmit={handleSubmit}
-            resetSearch={clearFilters}
-            hasActiveFilters={hasActiveFilters}
-          />
-        </div>
-
-        <div className="col-lg-9">
-          {loading ? (
-            <div
-              className="card border-0 shadow-sm d-flex justify-content-center align-items-center"
-              style={{ minHeight: "75vh" }}
-            >
-              <div className="text-center">
-                <div
-                  className="spinner-border spinner-border-lg text-primary mb-3"
-                  role="status"
-                >
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-                <p className="text-muted">Loading persons...</p>
-              </div>
+        {viewMode === "table" && (
+          <>
+            <div className="col-lg-3">
+              <PersonForm
+                formData={formData}
+                setFormData={setFormData}
+                handleSubmit={handleSubmit}
+                resetSearch={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
             </div>
-          ) : (
-            <Table
-              title="Persons"
-              headings={[
-                "First Name",
-                "Last Name",
-                "Age",
-                "Phone Number",
-                "Created",
-              ]}
-              importantHeadings={["First Name", "Phone Number"]}
-              importantKeys={["firstName", "phoneNumber"]}
-              data={persons}
-              excludedKeys={["id", "tag"]}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              deleteItem={deleteItem}
-              updatePersonInList={updatePersonInList}
-              onPersonClick={fetchPersonById}
-              onPersonUpdate={updatePerson}
-              showSuccess={showSuccess}
-              showError={showError}
-              hasActiveFilters={hasActiveFilters}
+
+            <div className="col-lg-9">
+              {loading ? (
+                <div
+                  className="card border-0 shadow-sm d-flex justify-content-center align-items-center"
+                  style={{ minHeight: "75vh" }}
+                >
+                  <div className="text-center">
+                    <div
+                      className="spinner-border spinner-border-lg text-primary mb-3"
+                      role="status"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="text-muted">Loading persons...</p>
+                  </div>
+                </div>
+              ) : (
+                <Table
+                  title="Persons"
+                  headings={[
+                    "First Name",
+                    "Last Name",
+                    "Age",
+                    "Phone Number",
+                    "Created",
+                  ]}
+                  importantHeadings={["First Name", "Phone Number"]}
+                  importantKeys={["firstName", "phoneNumber"]}
+                  data={persons}
+                  excludedKeys={["id", "tag"]}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  deleteItem={deleteItem}
+                  updatePersonInList={updatePersonInList}
+                  onPersonClick={fetchPersonById}
+                  onPersonUpdate={updatePerson}
+                  showSuccess={showSuccess}
+                  showError={showError}
+                  hasActiveFilters={hasActiveFilters}
+                  onPersonRowClick={handlePersonRowClick}
+                />
+              )}
+            </div>
+          </>
+        )}
+
+        {viewMode === "detail" && selectedPersonForView && (
+          <div className="col-12">
+            <PersonDetailCard
+              person={selectedPersonForView}
+              onBack={handleBackToTable}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
