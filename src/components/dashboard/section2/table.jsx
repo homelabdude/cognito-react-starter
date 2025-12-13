@@ -21,6 +21,7 @@ const Table = ({
   showSuccess,
   showError,
   hasActiveFilters = false,
+  onPersonRowClick,
 }) => {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -151,7 +152,12 @@ const Table = ({
               </thead>
               <tbody>
                 {data.map((item, index) => (
-                  <tr key={index}>
+                  <tr
+                    key={index}
+                    onClick={() => onPersonRowClick && onPersonRowClick(item.id)}
+                    style={{ cursor: onPersonRowClick ? 'pointer' : 'default' }}
+                    className="person-row"
+                  >
                     {Object.keys(item)
                       .filter((key) => !excludedKeys.includes(key))
                       .map((key) =>
@@ -162,14 +168,20 @@ const Table = ({
                     <td className="py-2 px-2 text-center">
                       <button
                         className="btn btn-link p-0 m-0 text-primary me-2"
-                        onClick={() => handleNameClick(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNameClick(item.id);
+                        }}
                         title="Edit"
                       >
                         <FaEdit size={13} />
                       </button>
                       <button
                         className="btn btn-link p-0 m-0 text-danger"
-                        onClick={() => deleteItem(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteItem(item.id);
+                        }}
                         title="Delete"
                       >
                         <FaTrash size={13} />
