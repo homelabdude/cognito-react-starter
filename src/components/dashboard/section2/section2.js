@@ -1,109 +1,80 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import Table from "./table";
 import { formatDate } from "../../../utils/utils";
 import PersonForm from "./person-form";
+import { usePersonsApi } from "../../../hooks/usePersonsApi";
+import { useToast } from "../../../hooks/useToast";
+import Toast from "../../Toast";
 
-const apiUrl = process.env.REACT_APP_BACKEND_APP_API_BASE_URL;
+// Constants
+const INITIAL_FORM_DATA = {
+  firstName: "",
+  lastName: "",
+  age: "",
+  phoneNumber: "",
+  tag: "",
+};
 
 const SectionTwo = ({ tokens }) => {
+  const { fetchPersons, createPerson, deletePerson, fetchPersonById, updatePerson } = usePersonsApi(tokens);
+  const { toast, showSuccess, showError, hideToast } = useToast();
+
   // ---------- States ------------
   const [persons, setPersons] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    age: "",
-    phoneNumber: "",
-    tag: "",
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [activeSearchParams, setActiveSearchParams] = useState({});
 
   // ----------- API Calls -----------
   const fetchData = useCallback(
     async (page = 0, searchParams = {}) => {
       try {
         setLoading(true);
-
-        const queryParams = new URLSearchParams({
-          page: page,
-          size: 9,
-          ...searchParams,
-        }).toString();
-
-        const response = await axios.get(`${apiUrl}v1/persons?${queryParams}`, {
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
-          },
-        });
-
-        const formattedPersons = response.data.content.map((person) => ({
-          ...person,
-          createTime: formatDate(person.createTime),
-        }));
-        setPersons(formattedPersons);
-        setTotalPages(response.data.totalPages);
-        setCurrentPage(page);
+        const result = await fetchPersons(page, searchParams);
+        setPersons(result.persons);
+        setTotalPages(result.totalPages);
+        setCurrentPage(result.currentPage);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     },
-    [tokens.accessToken],
+    [fetchPersons],
   );
 
   const postData = async () => {
     try {
-      const response = await axios.post(`${apiUrl}v1/persons`, formData, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
-        },
-      });
-      if (response.status === 200) {
-        setErrorMessage("");
-        setSuccessMessage("✔ Successfully added!");
-        setTimeout(() => {
-          setSuccessMessage("");
-          setFormData({
-            firstName: "",
-            lastName: "",
-            age: "",
-            phoneNumber: "",
-            tag: "",
-          });
-        }, 1000);
-      }
-      fetchData();
+      await createPerson(formData);
+      setFormData(INITIAL_FORM_DATA);
+      showSuccess("Person successfully added!");
+      // Preserve filters after adding
+      fetchData(0, activeSearchParams);
     } catch (error) {
       console.error("Error making API call:", error);
-      setSuccessMessage("");
-      setErrorMessage("✖️ Error adding person.");
-      setTimeout(() => {
-        setErrorMessage("");
-      }, 2000);
+
+      // Handle 409 Conflict with specific error message
+      if (error.response?.status === 409 && error.response?.data?.message) {
+        showError(error.response.data.message);
+      } else {
+        showError("Error adding person. Please try again.");
+      }
     }
   };
 
   const deleteItem = async (id) => {
     try {
-      const response = await axios.delete(`${apiUrl}v1/persons/${id}`, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
-        },
-      });
-      if (response.status === 200) {
-        fetchData(currentPage);
-      }
+      await deletePerson(id);
+      // Preserve filters after deleting
+      fetchData(currentPage, activeSearchParams);
     } catch (error) {
       console.error("Error deleting item:", error);
     }
   };
 
-  const updateData = (updatedPerson) => {
+  const updatePersonInList = (updatedPerson) => {
     setPersons((prevData) =>
       prevData.map((person) =>
         person.id === updatedPerson.id
@@ -122,7 +93,7 @@ const SectionTwo = ({ tokens }) => {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
-      fetchData(newPage);
+      fetchData(newPage, activeSearchParams);
     }
   };
 
@@ -131,15 +102,32 @@ const SectionTwo = ({ tokens }) => {
     if (mode === "add") {
       postData();
     } else {
-      fetchData(0, {
+      const searchParams = {
         name: formData.firstName,
         phone: formData.phoneNumber,
-      });
+      };
+      setActiveSearchParams(searchParams);
+      fetchData(0, searchParams);
     }
   };
 
+  const clearFilters = () => {
+    setFormData(INITIAL_FORM_DATA);
+    setActiveSearchParams({});
+    fetchData(0, {});
+  };
+
+  const hasActiveFilters = Object.keys(activeSearchParams).length > 0;
+
   return (
     <div className="container-fluid p-4 bg-body-secondary min-vh-100">
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        variant={toast.variant}
+        onClose={hideToast}
+      />
+
       <div className="mb-4">
         <div className="bg-primary text-white p-3 px-4 rounded-3 mb-4 shadow-sm">
           <h3 className="mb-2 fw-bold">Person Management</h3>
@@ -155,18 +143,8 @@ const SectionTwo = ({ tokens }) => {
             formData={formData}
             setFormData={setFormData}
             handleSubmit={handleSubmit}
-            successMessage={successMessage}
-            errorMessage={errorMessage}
-            resetSearch={() => {
-              setFormData({
-                firstName: "",
-                lastName: "",
-                age: "",
-                phoneNumber: "",
-                tag: "",
-              });
-              fetchData();
-            }}
+            resetSearch={clearFilters}
+            hasActiveFilters={hasActiveFilters}
           />
         </div>
 
@@ -204,8 +182,12 @@ const SectionTwo = ({ tokens }) => {
               totalPages={totalPages}
               onPageChange={handlePageChange}
               deleteItem={deleteItem}
-              updateData={updateData}
-              tokens={tokens}
+              updatePersonInList={updatePersonInList}
+              onPersonClick={fetchPersonById}
+              onPersonUpdate={updatePerson}
+              showSuccess={showSuccess}
+              showError={showError}
+              hasActiveFilters={hasActiveFilters}
             />
           )}
         </div>

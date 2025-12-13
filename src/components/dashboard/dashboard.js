@@ -14,14 +14,17 @@ const Dashboard = ({ signOut, user }) => {
   };
 
   const [tokens, setTokens] = useState({ accessToken: "", idToken: "" });
+  const [tokenError, setTokenError] = useState(null);
 
   useEffect(() => {
     const getTokens = async () => {
       try {
         const session = await fetchAuthSession();
         setTokens(session.tokens);
+        setTokenError(null);
       } catch (error) {
         console.error("Error getting tokens:", error);
+        setTokenError(error.message);
       }
     };
     getTokens();
@@ -33,6 +36,11 @@ const Dashboard = ({ signOut, user }) => {
 
   return (
     <div className="min-vh-100 bg-body-secondary">
+      {tokenError && (
+        <div className="alert alert-danger m-0 rounded-0 text-center" role="alert">
+          Error loading authentication tokens: {tokenError}
+        </div>
+      )}
       <Navbar variant="dark" className="navbar-custom shadow-sm">
         <Nav className="me-auto ms-3 small">
           <Nav.Link onClick={handleHomeClick} className="text-white-50">

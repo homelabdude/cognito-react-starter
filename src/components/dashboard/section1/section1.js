@@ -16,9 +16,7 @@ const SectionOne = ({ tokens }) => (
               <div className="table-responsive">
                 <table className="table table-sm table-hover">
                   <tbody>
-                    {Object.entries(
-                      JSON.parse(JSON.stringify(tokens.idToken.payload)),
-                    ).map(([key, value]) => (
+                    {Object.entries(tokens.idToken.payload).map(([key, value]) => (
                       <tr key={key}>
                         <td className="fw-semibold w-25">{key}</td>
                         <td className="text-secondary text-break small">

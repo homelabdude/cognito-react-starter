@@ -1,39 +1,19 @@
 import { useState } from "react";
+import { validatePersonField } from "../../../utils/validation";
+import { FaFilter, FaTimes } from "react-icons/fa";
 
 const PersonForm = ({
   formData,
   setFormData,
   handleSubmit,
-  successMessage,
-  errorMessage,
   resetSearch,
+  hasActiveFilters = false,
 }) => {
   const [mode, setMode] = useState("add");
 
-  const handleChange = (e, formData, setFormData) => {
+  const handleChange = (e) => {
     const { id, value } = e.target;
-    let newValue = value;
-
-    if (id === "firstName" || id === "lastName" || id === "tag") {
-      newValue = value.replace(/[^a-zA-Z\s]/g, "");
-      if (newValue.length > 20) {
-        newValue = newValue.substring(0, 20);
-      }
-    } else if (id === "age") {
-      newValue = value.replace(/\D/g, "");
-      if (
-        newValue !== "" &&
-        (parseInt(newValue) < 0 || parseInt(newValue) > 120)
-      ) {
-        newValue = formData.age;
-      }
-    } else if (id === "phoneNumber") {
-      newValue = value.replace(/(?:\+|(?!^))\+|[^+\d]/g, "");
-      if (newValue.length > 20) {
-        newValue = newValue.substring(0, 20);
-      }
-    }
-
+    const newValue = validatePersonField(id, value, formData[id]);
     setFormData({ ...formData, [id]: newValue });
   };
 
@@ -44,12 +24,22 @@ const PersonForm = ({
     >
       <div className="card-body p-3 d-flex flex-column overflow-auto">
         <div className="p-1 pb-2">
-          <h5 className="mb-1 fw-semibold text-primary">
-            {mode === "add" ? "Add Person" : "Search Person"}
-          </h5>
+          <div className="d-flex align-items-center justify-content-between">
+            <h5 className="mb-1 fw-semibold text-primary">
+              {mode === "add" ? "Add Person" : "Search Person"}
+            </h5>
+            {mode === "search" && hasActiveFilters && (
+              <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
+                <FaFilter size={10} />
+                Active
+              </span>
+            )}
+          </div>
           <p className="text-muted mb-0 small">
             {mode === "add"
               ? "Create a new person record"
+              : hasActiveFilters
+              ? "Filters are currently applied to the results"
               : "Find existing person records"}
           </p>
         </div>
@@ -85,7 +75,7 @@ const PersonForm = ({
               className="form-control form-control-sm"
               id="firstName"
               value={formData.firstName}
-              onChange={(e) => handleChange(e, formData, setFormData)}
+              onChange={handleChange}
               required
               placeholder="Enter first name"
             />
@@ -105,7 +95,7 @@ const PersonForm = ({
                   className="form-control form-control-sm"
                   id="lastName"
                   value={formData.lastName}
-                  onChange={(e) => handleChange(e, formData, setFormData)}
+                  onChange={handleChange}
                   placeholder="Enter last name"
                 />
               </div>
@@ -121,7 +111,7 @@ const PersonForm = ({
                   className="form-control form-control-sm"
                   id="age"
                   value={formData.age}
-                  onChange={(e) => handleChange(e, formData, setFormData)}
+                  onChange={handleChange}
                   required
                   placeholder="Enter age (0-120)"
                 />
@@ -142,7 +132,7 @@ const PersonForm = ({
               className="form-control form-control-sm"
               id="phoneNumber"
               value={formData.phoneNumber}
-              onChange={(e) => handleChange(e, formData, setFormData)}
+              onChange={handleChange}
               required
               placeholder="Enter phone number"
             />
@@ -158,7 +148,7 @@ const PersonForm = ({
                 className="form-control form-control-sm"
                 id="tag"
                 value={formData.tag}
-                onChange={(e) => handleChange(e, formData, setFormData)}
+                onChange={handleChange}
                 placeholder="Enter tag (optional)"
               />
             </div>
@@ -174,29 +164,15 @@ const PersonForm = ({
             {mode === "search" && (
               <button
                 type="button"
-                className="btn btn-sm btn-outline-secondary flex-grow-1"
+                className={`btn btn-sm flex-grow-1 ${hasActiveFilters ? "btn-warning" : "btn-outline-secondary"}`}
                 onClick={resetSearch}
               >
-                Reset
+                {hasActiveFilters && <FaTimes className="me-1" size={12} />}
+                {hasActiveFilters ? "Clear Filters" : "Reset"}
               </button>
             )}
           </div>
         </form>
-
-        {(successMessage || errorMessage) && (
-          <div className="mt-2">
-            {successMessage && (
-              <div className="alert alert-success py-2 mb-0 small" role="alert">
-                {successMessage}
-              </div>
-            )}
-            {errorMessage && (
-              <div className="alert alert-danger py-2 mb-0 small" role="alert">
-                {errorMessage}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { FaTrash } from "react-icons/fa";
-import axios from "axios";
+import { FaTrash, FaEdit, FaFilter } from "react-icons/fa";
 import PersonDetails from "./person-details";
-
-const apiUrl = process.env.REACT_APP_BACKEND_APP_API_BASE_URL;
+import { useMediaQuery } from "../../../hooks/useMediaQuery";
+import { validatePersonField } from "../../../utils/validation";
 
 const Table = ({
   title,
@@ -16,23 +15,24 @@ const Table = ({
   deleteItem,
   importantKeys,
   importantHeadings,
-  tokens,
-  updateData,
+  updatePersonInList,
+  onPersonClick,
+  onPersonUpdate,
+  showSuccess,
+  showError,
+  hasActiveFilters = false,
 }) => {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [editablePerson, setEditablePerson] = useState(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const handleNameClick = async (id) => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${apiUrl}v1/persons/${id}`, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
-        },
-      });
-      setSelectedPerson(response.data);
-      setEditablePerson(response.data);
+      const person = await onPersonClick(id);
+      setSelectedPerson(person);
+      setEditablePerson(person);
     } catch (error) {
       console.error("Error fetching person details:", error);
     } finally {
@@ -40,66 +40,32 @@ const Table = ({
     }
   };
 
-  const handleBack = () => {
+  const handleClose = () => {
     setSelectedPerson(null);
+    setEditablePerson(null);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    let newValue = value;
-
-    if (name === "firstName" || name === "lastName" || name === "tag") {
-      newValue = value.replace(/[^a-zA-Z\s]/g, "");
-    } else if (name === "age") {
-      newValue = value.replace(/\D/g, "");
-      if (
-        newValue !== "" &&
-        (parseInt(newValue) < 0 || parseInt(newValue) > 120)
-      ) {
-        newValue = editablePerson.age;
-      }
-    } else if (name === "phoneNumber") {
-      newValue = value.replace(/(?:\+|(?!^))\+|[^+\d]/g, "");
-      if (newValue.length > 20) {
-        newValue = newValue.substring(0, 20);
-      }
-    }
-
+    const newValue = validatePersonField(name, value, editablePerson[name]);
     setEditablePerson((prevPerson) => ({ ...prevPerson, [name]: newValue }));
   };
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.patch(
-        `${apiUrl}v1/persons/${editablePerson.id}`,
-        editablePerson,
-        {
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken?.toString?.() || ""}`,
-          },
-        },
-      );
-      updateData(response.data);
-      setSelectedPerson(response.data);
-      return true;
+      const updatedPerson = await onPersonUpdate(editablePerson.id, editablePerson);
+      updatePersonInList(updatedPerson);
+      setSelectedPerson(updatedPerson);
+      return { success: true };
     } catch (error) {
       console.error("Error updating person details:", error);
-      return false;
+      return { success: false, error };
     }
   };
 
   const renderCell = (item, key) => (
     <td key={key} className="py-2 px-2 small">
-      {key === "firstName" ? (
-        <button
-          className="btn btn-link p-0 m-0 text-decoration-none text-primary fw-medium"
-          onClick={() => handleNameClick(item.id)}
-        >
-          {item[key]}
-        </button>
-      ) : (
-        <span className="text-secondary">{item[key]}</span>
-      )}
+      <span className="text-secondary">{item[key]}</span>
     </td>
   );
 
@@ -138,8 +104,6 @@ const Table = ({
   const renderDesktopHeading = (heading, index) =>
     renderHeading(heading, index);
 
-  const isMobile = window.innerWidth <= 768;
-
   const renderTable = () => (
     <div
       className="card border-0 shadow-sm overflow-hidden"
@@ -147,7 +111,15 @@ const Table = ({
     >
       <div className="card-body p-3 d-flex flex-column h-100">
         <div className="p-1 pb-2">
-          <h5 className="mb-1 fw-semibold text-primary">{title}</h5>
+          <div className="d-flex align-items-center justify-content-between">
+            <h5 className="mb-1 fw-semibold text-primary">{title}</h5>
+            {hasActiveFilters && (
+              <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
+                <FaFilter size={10} />
+                Filtered ({data.length})
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex-grow-1 overflow-auto">
@@ -167,9 +139,11 @@ const Table = ({
                         renderDesktopHeading(heading, index),
                       )}
                   <th
-                    className="py-2 px-2 border-bottom"
-                    style={{ width: "50px" }}
-                  ></th>
+                    className="py-2 px-2 border-bottom text-center"
+                    style={{ width: "80px" }}
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -183,6 +157,13 @@ const Table = ({
                           : renderDesktopCell(item, key),
                       )}
                     <td className="py-2 px-2 text-center">
+                      <button
+                        className="btn btn-link p-0 m-0 text-primary me-2"
+                        onClick={() => handleNameClick(item.id)}
+                        title="Edit"
+                      >
+                        <FaEdit size={13} />
+                      </button>
                       <button
                         className="btn btn-link p-0 m-0 text-danger"
                         onClick={() => deleteItem(item.id)}
@@ -259,15 +240,18 @@ const Table = ({
 
   return (
     <div>
-      {!selectedPerson ? (
-        renderTable()
-      ) : (
+      {renderTable()}
+
+      {editablePerson && (
         <PersonDetails
+          show={!!selectedPerson}
           isLoading={isLoading}
           editablePerson={editablePerson}
           handleInputChange={handleInputChange}
           handleUpdate={handleUpdate}
-          handleBack={handleBack}
+          handleClose={handleClose}
+          showSuccess={showSuccess}
+          showError={showError}
         />
       )}
     </div>

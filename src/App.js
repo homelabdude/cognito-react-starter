@@ -2,7 +2,7 @@ import React from "react";
 import { Amplify } from "aws-amplify";
 import { Heading, View } from "@aws-amplify/ui-react";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router";
+import { BrowserRouter as Router, Route, Routes } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import awsExports from "./aws-exports";
@@ -52,13 +52,9 @@ export default function App() {
             path="/dashboard"
             element={
               <Authenticator hideSignUp components={components}>
-                {({ signOut, user }) =>
-                  user ? (
-                    <Dashboard signOut={signOut} user={user} />
-                  ) : (
-                    <Navigate to="/dashboard" />
-                  )
-                }
+                {({ signOut, user }) => (
+                  <Dashboard signOut={signOut} user={user} />
+                )}
               </Authenticator>
             }
           />
