@@ -16,41 +16,20 @@
     "react-icons": "^5.5.0",
     "react-router": "^7.6.0",
     "react-router-dom": "^7.9.5",
-    "react-scripts": "5.0.1",
     "text-encoding": "^0.7.0",
     "web-vitals": "^5.1.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "prettier": "3.6.2"
-  },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!axios)/"
-    ]
+    "@vitejs/plugin-react": "^5.1.2",
+    "prettier": "3.6.2",
+    "vite": "^7.2.7",
+    "vite-plugin-environment": "^1.1.3"
   }
 }

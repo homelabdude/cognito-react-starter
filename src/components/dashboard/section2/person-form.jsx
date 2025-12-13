@@ -39,8 +39,8 @@ const PersonForm = ({
             {mode === "add"
               ? "Create a new person record"
               : hasActiveFilters
-              ? "Filters are currently applied to the results"
-              : "Find existing person records"}
+                ? "Filters are currently applied to the results"
+                : "Find existing person records"}
           </p>
         </div>
 

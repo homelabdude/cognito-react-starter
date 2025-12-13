@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import Table from "./table";
+import Table from "./table.jsx";
 import { formatDate } from "../../../utils/utils";
-import PersonForm from "./person-form";
+import PersonForm from "./person-form.jsx";
 import { usePersonsApi } from "../../../hooks/usePersonsApi";
 import { useToast } from "../../../hooks/useToast";
-import Toast from "../../Toast";
+import Toast from "../../Toast.jsx";
 
 // Constants
 const INITIAL_FORM_DATA = {
@@ -16,7 +16,13 @@ const INITIAL_FORM_DATA = {
 };
 
 const SectionTwo = ({ tokens }) => {
-  const { fetchPersons, createPerson, deletePerson, fetchPersonById, updatePerson } = usePersonsApi(tokens);
+  const {
+    fetchPersons,
+    createPerson,
+    deletePerson,
+    fetchPersonById,
+    updatePerson,
+  } = usePersonsApi(tokens);
   const { toast, showSuccess, showError, hideToast } = useToast();
 
   // ---------- States ------------

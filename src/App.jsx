@@ -6,11 +6,11 @@ import { BrowserRouter as Router, Route, Routes } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import awsExports from "./aws-exports";
-import Home from "./components/home/home";
-import Dashboard from "./components/dashboard/dashboard";
-import NotFound from "./components/notfound/notfound";
-import { ThemeProvider } from "./context/ThemeContext";
-import DarkModeToggle from "./components/DarkModeToggle";
+import Home from "./components/home/home.jsx";
+import Dashboard from "./components/dashboard/dashboard.jsx";
+import NotFound from "./components/notfound/notfound.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import DarkModeToggle from "./components/DarkModeToggle.jsx";
 
 const headingStyle = {
   fontSize: "1.5em",

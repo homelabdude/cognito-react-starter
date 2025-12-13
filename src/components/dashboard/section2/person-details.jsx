@@ -17,7 +17,10 @@ const PersonDetails = ({
       handleClose();
     } else {
       // Handle 409 Conflict with specific error message
-      if (result.error?.response?.status === 409 && result.error?.response?.data?.message) {
+      if (
+        result.error?.response?.status === 409 &&
+        result.error?.response?.data?.message
+      ) {
         showError(result.error.response.data.message);
       } else {
         showError("Error updating details. Please try again.");
@@ -83,7 +86,10 @@ const PersonDetails = ({
             </div>
 
             <div className="col-md-6">
-              <label htmlFor="phoneNumber" className="form-label fw-medium small">
+              <label
+                htmlFor="phoneNumber"
+                className="form-label fw-medium small"
+              >
                 Phone Number
               </label>
               <input

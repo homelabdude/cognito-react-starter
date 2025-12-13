@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaTrash, FaEdit, FaFilter } from "react-icons/fa";
-import PersonDetails from "./person-details";
+import PersonDetails from "./person-details.jsx";
 import { useMediaQuery } from "../../../hooks/useMediaQuery";
 import { validatePersonField } from "../../../utils/validation";
 
@@ -53,7 +53,10 @@ const Table = ({
 
   const handleUpdate = async () => {
     try {
-      const updatedPerson = await onPersonUpdate(editablePerson.id, editablePerson);
+      const updatedPerson = await onPersonUpdate(
+        editablePerson.id,
+        editablePerson,
+      );
       updatePersonInList(updatedPerson);
       setSelectedPerson(updatedPerson);
       return { success: true };

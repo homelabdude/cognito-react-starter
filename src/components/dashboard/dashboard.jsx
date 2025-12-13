@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { fetchAuthSession } from "aws-amplify/auth";
-import SectionOne from "./section1/section1";
-import SectionTwo from "./section2/section2";
+import SectionOne from "./section1/section1.jsx";
+import SectionTwo from "./section2/section2.jsx";
 
 const Dashboard = ({ signOut, user }) => {
   const navigate = useNavigate();
@@ -37,7 +37,10 @@ const Dashboard = ({ signOut, user }) => {
   return (
     <div className="min-vh-100 bg-body-secondary">
       {tokenError && (
-        <div className="alert alert-danger m-0 rounded-0 text-center" role="alert">
+        <div
+          className="alert alert-danger m-0 rounded-0 text-center"
+          role="alert"
+        >
           Error loading authentication tokens: {tokenError}
         </div>
       )}
