@@ -144,7 +144,7 @@ const SectionTwo = ({ tokens }) => {
       </div>
 
       <div className="row g-4">
-        <div className="col-lg-4">
+        <div className="col-lg-3">
           <PersonForm
             formData={formData}
             setFormData={setFormData}
@@ -154,7 +154,7 @@ const SectionTwo = ({ tokens }) => {
           />
         </div>
 
-        <div className="col-lg-8">
+        <div className="col-lg-9">
           {loading ? (
             <div
               className="card border-0 shadow-sm d-flex justify-content-center align-items-center"

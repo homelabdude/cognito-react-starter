@@ -74,11 +74,11 @@ a:not(.btn):hover {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1rem;
   cursor: pointer;
   z-index: 1050;
   transition: all 0.2s ease;

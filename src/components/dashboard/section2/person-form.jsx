@@ -161,10 +161,10 @@ const PersonForm = ({
             >
               {mode === "add" ? "Add Person" : "Search"}
             </button>
-            {mode === "search" && (
+            {mode === "search" && hasActiveFilters && (
               <button
                 type="button"
-                className={`btn btn-sm flex-grow-1 ${hasActiveFilters ? "btn-warning" : "btn-outline-secondary"}`}
+                className="btn btn-sm flex-grow-1 ${hasActiveFilters btn-warning"
                 onClick={resetSearch}
               >
                 {hasActiveFilters && <FaTimes className="me-1" size={12} />}
