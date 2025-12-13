@@ -68,7 +68,7 @@ const Table = ({
 
   const renderCell = (item, key) => (
     <td key={key} className="py-2 px-2 small">
-      <span className="text-secondary">{item[key]}</span>
+      <span >{item[key]}</span>
     </td>
   );
 
@@ -119,7 +119,7 @@ const Table = ({
             {hasActiveFilters && (
               <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
                 <FaFilter size={10} />
-                Filtered ({data.length})
+                Filtered
               </span>
             )}
           </div>
@@ -142,7 +142,7 @@ const Table = ({
                         renderDesktopHeading(heading, index),
                       )}
                   <th
-                    className="py-2 px-2 border-bottom text-center"
+                    className="py-2 px-2 border-bottom text-center text-uppercase text-muted"
                     style={{ width: "80px" }}
                   >
                     Actions
