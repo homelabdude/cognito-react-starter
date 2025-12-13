@@ -1,49 +1,220 @@
 @import "@aws-amplify/ui-react/styles.css";
 
-.App {
-  text-align: center;
+/* Modern, slick color palette */
+:root {
+  --bs-primary: #0f172a;
+  --bs-primary-rgb: 15, 23, 42;
+  --bs-link-color: #6366f1;
+  --bs-link-hover-color: #4f46e5;
+  --accent-color: #6366f1;
+  --accent-hover: #4f46e5;
 }
 
+[data-bs-theme="dark"] {
+  --bs-primary: #6366f1;
+  --bs-primary-rgb: 99, 102, 241;
+  --bs-link-color: #818cf8;
+  --bs-link-hover-color: #a5b4fc;
+  --accent-color: #818cf8;
+  --accent-hover: #a5b4fc;
+}
+
+/* Navbar - deep navy in light mode, indigo in dark mode */
+.navbar-custom {
+  background-color: var(--bs-primary) !important;
+}
+
+/* Buttons and accents */
+.btn-primary {
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+/* Header sections */
+.bg-primary {
+  background: linear-gradient(
+    135deg,
+    var(--bs-primary) 0%,
+    var(--accent-color) 100%
+  ) !important;
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--accent-color) !important;
+}
+
+/* Links */
+a:not(.btn) {
+  color: var(--bs-link-color);
+}
+
+a:not(.btn):hover {
+  color: var(--bs-link-hover-color);
+}
+
+/* Amplify UI overrides */
 .amplify-button--primary {
-  background-color: #343a40; /* Change this to your desired color */
-  color: #ffffff; /* Change this to your desired text color */
+  background-color: var(--accent-color);
+  color: #ffffff;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.amplify-button--primary:hover {
+  background-color: var(--accent-hover);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.text-purple {
-  color: #7755ab;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+/* Dark mode toggle button */
+.dark-mode-toggle {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1050;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
   color: white;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
 }
 
-.App-link {
-  color: #61dafb;
+.dark-mode-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Spinner */
+.spinner-border-lg {
+  width: 3rem;
+  height: 3rem;
+}
+
+.spinner-border {
+  color: var(--accent-color) !important;
+}
+
+/* Card enhancements */
+.card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Form focus states */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.15);
+}
+
+/* Table row hover */
+.table-hover tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+[data-bs-theme="dark"] .table-hover tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* Text color fixes for dark mode */
+.text-secondary {
+  color: #64748b !important;
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: #bcc7d6 !important;
+}
+
+.text-muted {
+  opacity: 0.7 !important;
+}
+
+/* Ensure proper contrast on cards and backgrounds */
+[data-bs-theme="dark"] .card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+[data-bs-theme="dark"] .bg-body-secondary {
+  background-color: #0f172a !important;
+}
+
+/* Table header styling for dark mode */
+[data-bs-theme="dark"] .table thead {
+  color: #cbd5e1;
+}
+
+/* Better pagination in dark mode */
+[data-bs-theme="dark"] .page-link {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .page-link:hover {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .page-item.disabled .page-link {
+  background-color: #0f172a;
+  border-color: #1e293b;
+  color: #64748b;
+}
+
+/* Form controls dark mode */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .form-control:disabled,
+[data-bs-theme="dark"] .form-select:disabled {
+  background-color: #1e293b;
+  color: #64748b;
+}
+
+/* Table backgrounds dark mode */
+[data-bs-theme="dark"] .table {
+  color: #e2e8f0;
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+}
+
+[data-bs-theme="dark"] .bg-body,
+[data-bs-theme="dark"] .bg-body-tertiary {
+  background-color: #1e293b !important;
+}
+
+[data-bs-theme="dark"] .table thead.sticky-top {
+  background-color: #1e293b !important;
+}
+
+/* Alert backgrounds dark mode */
+[data-bs-theme="dark"] .alert-success {
+  background-color: #064e3b;
+  border-color: #065f46;
+  color: #d1fae5;
+}
+
+[data-bs-theme="dark"] .alert-danger {
+  background-color: #7f1d1d;
+  border-color: #991b1b;
+  color: #fecaca;
 }

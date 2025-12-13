@@ -11,7 +11,7 @@
 
 - This project has all the necessary frontend and the sample code required to create a web app with Cognito oAuth
 - This frontend is designed to be fully functional as a standalone application irrespective of the backend you choose to use but has sections that seamlessly work with the APIs in [cognito-springboot-starter](https://github.com/ash0ne/cognito-springboot-starter).
-- This frontend project is initiated with [Create React App](https://github.com/facebook/create-react-app)
+- This frontend project was originally initiated with [Create React App](https://github.com/facebook/create-react-app) and has now been migrated to user Vite.
 
 ## Getting Started
 
