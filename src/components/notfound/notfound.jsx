@@ -1,29 +1,22 @@
 import { Link } from "react-router";
+import { FaArrowLeft } from "react-icons/fa";
 
 const NotFound = () => {
   return (
-    <div className="container-fluid p-0">
-      {/* Top Banner */}
-      <div className="row g-0">
-        <div className="col bg-danger d-flex justify-content-center align-items-center text-white vh-50">
-          <h1 className="text-center px-3">
-            404 - Oops! The page you are looking for doesn't exist
-          </h1>
-        </div>
-      </div>
-
-      {/* Message */}
-      <div className="row mt-5">
-        <div
-          className="col d-flex justify-content-center align-items-center text-danger"
-          style={{ height: "30vh" }}
+    <div className="min-vh-100 d-flex align-items-center justify-content-center p-4">
+      <div className="text-center" style={{ maxWidth: "28rem" }}>
+        <p className="fw-bold text-primary mb-2">404</p>
+        <h1 className="h2 fw-bold mb-3">Page not found</h1>
+        <p className="text-body-secondary mb-4">
+          Oops! The page you are looking for doesn't exist or has been moved.
+        </p>
+        <Link
+          to="/"
+          className="btn btn-primary px-4 d-inline-flex align-items-center gap-2"
         >
-          if you are lost,{" "}
-          <Link to="/" className="text-danger fw-bold">
-            Go Home
-          </Link>
-          .
-        </div>
+          <FaArrowLeft size={12} />
+          Go home
+        </Link>
       </div>
     </div>
   );
