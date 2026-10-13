@@ -16,6 +16,20 @@ const INITIAL_FORM_DATA = {
   tag: "",
 };
 
+// Columns shown in the table; `important` columns are kept on mobile
+const COLUMNS = [
+  { key: "firstName", label: "First Name", important: true },
+  { key: "lastName", label: "Last Name" },
+  { key: "age", label: "Age" },
+  { key: "phoneNumber", label: "Phone Number", important: true },
+  { key: "createTime", label: "Created" },
+];
+
+const getErrorMessage = (error, fallback) =>
+  error.response?.status === 409 && error.response?.data?.message
+    ? error.response.data.message
+    : fallback;
+
 const SectionTwo = ({ tokens }) => {
   const {
     fetchPersons,
@@ -29,11 +43,15 @@ const SectionTwo = ({ tokens }) => {
   // ---------- States ------------
   const [persons, setPersons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSearchParams, setActiveSearchParams] = useState({});
   const [selectedPersonForView, setSelectedPersonForView] = useState(null);
+  const [openingPersonId, setOpeningPersonId] = useState(null);
   const [viewMode, setViewMode] = useState("table"); // "table" or "detail"
 
   // ----------- API Calls -----------
@@ -45,16 +63,20 @@ const SectionTwo = ({ tokens }) => {
         setPersons(result.persons);
         setTotalPages(result.totalPages);
         setCurrentPage(result.currentPage);
+        setFetchError(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setFetchError(true);
       } finally {
         setLoading(false);
+        setHasLoaded(true);
       }
     },
     [fetchPersons],
   );
 
   const postData = async () => {
+    setIsSubmitting(true);
     try {
       await createPerson(formData);
       setFormData(INITIAL_FORM_DATA);
@@ -63,23 +85,26 @@ const SectionTwo = ({ tokens }) => {
       fetchData(0, activeSearchParams);
     } catch (error) {
       console.error("Error making API call:", error);
-
-      // Handle 409 Conflict with specific error message
-      if (error.response?.status === 409 && error.response?.data?.message) {
-        showError(error.response.data.message);
-      } else {
-        showError("Error adding person. Please try again.");
-      }
+      showError(
+        getErrorMessage(error, "Error adding person. Please try again."),
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const deleteItem = async (id) => {
     try {
       await deletePerson(id);
+      showSuccess("Person successfully deleted.");
+      // Step back a page if we just removed the last row on this page
+      const page =
+        persons.length === 1 && currentPage > 0 ? currentPage - 1 : currentPage;
       // Preserve filters after deleting
-      fetchData(currentPage, activeSearchParams);
+      fetchData(page, activeSearchParams);
     } catch (error) {
       console.error("Error deleting item:", error);
+      showError("Error deleting person. Please try again.");
     }
   };
 
@@ -97,8 +122,10 @@ const SectionTwo = ({ tokens }) => {
   };
 
   useEffect(() => {
+    // Wait for the Cognito session so the first request is authenticated
+    if (!tokens.accessToken) return;
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, tokens.accessToken]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
@@ -111,10 +138,13 @@ const SectionTwo = ({ tokens }) => {
     if (mode === "add") {
       postData();
     } else {
-      const searchParams = {
-        name: formData.firstName,
-        phone: formData.phoneNumber,
-      };
+      // Only send the fields the user actually filled in
+      const searchParams = Object.fromEntries(
+        Object.entries({
+          name: formData.firstName.trim(),
+          phone: formData.phoneNumber.trim(),
+        }).filter(([, value]) => value !== ""),
+      );
       setActiveSearchParams(searchParams);
       fetchData(0, searchParams);
     }
@@ -129,6 +159,7 @@ const SectionTwo = ({ tokens }) => {
   const hasActiveFilters = Object.keys(activeSearchParams).length > 0;
 
   const handlePersonRowClick = async (id) => {
+    setOpeningPersonId(id);
     try {
       const person = await fetchPersonById(id);
       setSelectedPersonForView(person);
@@ -136,6 +167,8 @@ const SectionTwo = ({ tokens }) => {
     } catch (error) {
       console.error("Error fetching person details:", error);
       showError("Error loading person details. Please try again.");
+    } finally {
+      setOpeningPersonId(null);
     }
   };
 
@@ -145,7 +178,7 @@ const SectionTwo = ({ tokens }) => {
   };
 
   return (
-    <div className="container-fluid p-4 bg-body-secondary min-vh-100">
+    <div className="container-fluid p-3 p-md-4 section-fill">
       <Toast
         show={toast.show}
         message={toast.message}
@@ -153,71 +186,50 @@ const SectionTwo = ({ tokens }) => {
         onClose={hideToast}
       />
 
-      <div className="mb-4">
-        <div className="bg-primary text-white p-3 px-4 rounded-3 mb-4 shadow-sm">
-          <h3 className="mb-2 fw-bold">Person Management</h3>
-          <p className="mb-0 opacity-75">
-            Manage person records with authentication and API integration
-          </p>
-        </div>
+      <div className="page-header hero-gradient">
+        <h3 className="mb-1 fw-bold">Person Management</h3>
+        <p className="mb-0">
+          Manage person records with authentication and API integration
+        </p>
       </div>
 
       <div className="row g-4">
         {viewMode === "table" && (
           <>
-            <div className="col-lg-3">
+            <div className="col-lg-4 col-xl-3">
               <PersonForm
                 formData={formData}
                 setFormData={setFormData}
                 handleSubmit={handleSubmit}
                 resetSearch={clearFilters}
                 hasActiveFilters={hasActiveFilters}
+                isSubmitting={isSubmitting}
               />
             </div>
 
-            <div className="col-lg-9">
-              {loading ? (
-                <div
-                  className="card border-0 shadow-sm d-flex justify-content-center align-items-center"
-                  style={{ minHeight: "75vh" }}
-                >
-                  <div className="text-center">
-                    <div
-                      className="spinner-border spinner-border-lg text-primary mb-3"
-                      role="status"
-                    >
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p className="text-muted">Loading persons...</p>
-                  </div>
-                </div>
-              ) : (
-                <Table
-                  title="Persons"
-                  headings={[
-                    "First Name",
-                    "Last Name",
-                    "Age",
-                    "Phone Number",
-                    "Created",
-                  ]}
-                  importantHeadings={["First Name", "Phone Number"]}
-                  importantKeys={["firstName", "phoneNumber"]}
-                  data={persons}
-                  excludedKeys={["id", "tag"]}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  deleteItem={deleteItem}
-                  updatePersonInList={updatePersonInList}
-                  onPersonClick={fetchPersonById}
-                  onPersonUpdate={updatePerson}
-                  showSuccess={showSuccess}
-                  showError={showError}
-                  hasActiveFilters={hasActiveFilters}
-                  onPersonRowClick={handlePersonRowClick}
-                />
-              )}
+            <div className="col-lg-8 col-xl-9">
+              <Table
+                title="Persons"
+                columns={COLUMNS}
+                data={persons}
+                loading={loading}
+                initialLoading={!hasLoaded}
+                error={fetchError}
+                onRetry={() => fetchData(currentPage, activeSearchParams)}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                deleteItem={deleteItem}
+                updatePersonInList={updatePersonInList}
+                onPersonClick={fetchPersonById}
+                onPersonUpdate={updatePerson}
+                showSuccess={showSuccess}
+                showError={showError}
+                hasActiveFilters={hasActiveFilters}
+                onClearFilters={clearFilters}
+                onPersonRowClick={handlePersonRowClick}
+                openingPersonId={openingPersonId}
+              />
             </div>
           </>
         )}

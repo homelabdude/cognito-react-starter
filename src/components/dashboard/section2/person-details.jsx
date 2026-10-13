@@ -1,4 +1,18 @@
-import { Modal, Button } from "react-bootstrap";
+import { useState } from "react";
+import { Modal, Button, Spinner } from "react-bootstrap";
+
+// Edit fields; ids are prefixed so they don't clash with the add form
+const FIELDS = [
+  { name: "firstName", label: "First Name", autoComplete: "given-name" },
+  { name: "lastName", label: "Last Name", autoComplete: "family-name" },
+  { name: "age", label: "Age", inputMode: "numeric" },
+  {
+    name: "phoneNumber",
+    label: "Phone Number",
+    inputMode: "tel",
+    autoComplete: "tel",
+  },
+];
 
 const PersonDetails = ({
   show,
@@ -10,8 +24,13 @@ const PersonDetails = ({
   showSuccess,
   showError,
 }) => {
-  const handleUpdateWithMessage = async () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleUpdateWithMessage = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
     const result = await handleUpdate();
+    setIsSaving(false);
     if (result.success) {
       showSuccess("Person details successfully updated!");
       handleClose();
@@ -29,90 +48,70 @@ const PersonDetails = ({
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title className="text-primary">Edit Person Details</Modal.Title>
-      </Modal.Header>
+    <Modal
+      show={show}
+      onHide={() => !isSaving && handleClose()}
+      centered
+      size="lg"
+    >
+      <form onSubmit={handleUpdateWithMessage}>
+        <Modal.Header closeButton>
+          <Modal.Title as="h5" className="fw-semibold">
+            Edit Person Details
+          </Modal.Title>
+        </Modal.Header>
 
-      <Modal.Body>
-        {isLoading ? (
-          <div className="d-flex justify-content-center align-items-center py-5">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
+        <Modal.Body className="p-4">
+          {isLoading ? (
+            <div className="d-flex justify-content-center align-items-center py-5">
+              <Spinner role="status">
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
             </div>
-          </div>
-        ) : (
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label htmlFor="firstName" className="form-label fw-medium small">
-                First Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="firstName"
-                name="firstName"
-                value={editablePerson.firstName}
-                onChange={handleInputChange}
-              />
+          ) : (
+            <div className="row g-3">
+              {FIELDS.map(({ name, label, ...inputProps }) => (
+                <div className="col-md-6" key={name}>
+                  <label
+                    htmlFor={`edit-${name}`}
+                    className="form-label fw-medium small"
+                  >
+                    {label}
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id={`edit-${name}`}
+                    name={name}
+                    value={editablePerson[name] ?? ""}
+                    onChange={handleInputChange}
+                    disabled={isSaving}
+                    {...inputProps}
+                  />
+                </div>
+              ))}
             </div>
+          )}
+        </Modal.Body>
 
-            <div className="col-md-6">
-              <label htmlFor="lastName" className="form-label fw-medium small">
-                Last Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="lastName"
-                name="lastName"
-                value={editablePerson.lastName}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="col-md-6">
-              <label htmlFor="age" className="form-label fw-medium small">
-                Age
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="age"
-                name="age"
-                value={editablePerson.age}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="col-md-6">
-              <label
-                htmlFor="phoneNumber"
-                className="form-label fw-medium small"
-              >
-                Phone Number
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={editablePerson.phoneNumber}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-        )}
-      </Modal.Body>
-
-      <Modal.Footer>
-        <Button variant="outline-secondary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={handleUpdateWithMessage}>
-          Update Details
-        </Button>
-      </Modal.Footer>
+        <Modal.Footer>
+          <Button
+            variant="outline-secondary"
+            onClick={handleClose}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isLoading || isSaving}
+          >
+            {isSaving && <Spinner size="sm" className="me-2 text-reset" />}
+            {isSaving ? "Saving..." : "Update Details"}
+          </Button>
+        </Modal.Footer>
+      </form>
     </Modal>
   );
 };

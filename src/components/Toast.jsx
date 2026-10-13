@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Toast as BootstrapToast } from "react-bootstrap";
+import { Toast as BootstrapToast, ToastContainer } from "react-bootstrap";
+import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 
 const Toast = ({
   show,
@@ -8,43 +8,37 @@ const Toast = ({
   onClose,
   delay = 3000,
 }) => {
-  useEffect(() => {
-    if (show) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, delay);
-      return () => clearTimeout(timer);
-    }
-  }, [show, delay, onClose]);
+  const isSuccess = variant === "success";
+  const Icon = isSuccess ? FaCheckCircle : FaExclamationCircle;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: "80px",
-        right: "20px",
-        zIndex: 9999,
-        minWidth: "300px",
-      }}
+    <ToastContainer
+      position="top-end"
+      className="p-3 position-fixed"
+      style={{ zIndex: 1090 }}
     >
       <BootstrapToast
         show={show}
         onClose={onClose}
         bg={variant}
-        autohide={false}
+        delay={delay}
+        autohide
       >
-        <BootstrapToast.Header closeButton>
-          <strong className="me-auto">
-            {variant === "success" ? "Success" : "Error"}
-          </strong>
-        </BootstrapToast.Header>
-        <BootstrapToast.Body
-          className={variant === "success" ? "text-white" : ""}
-        >
-          {message}
-        </BootstrapToast.Body>
+        <div className="d-flex align-items-start gap-2 p-3 text-white">
+          <Icon className="flex-shrink-0 mt-1" size={16} aria-hidden="true" />
+          <div className="flex-grow-1">
+            <div className="fw-semibold">{isSuccess ? "Success" : "Error"}</div>
+            <div className="small">{message}</div>
+          </div>
+          <button
+            type="button"
+            className="btn-close btn-close-white flex-shrink-0"
+            aria-label="Close"
+            onClick={onClose}
+          />
+        </div>
       </BootstrapToast>
-    </div>
+    </ToastContainer>
   );
 };
 

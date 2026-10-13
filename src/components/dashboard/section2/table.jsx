@@ -1,48 +1,69 @@
 import { useState } from "react";
-import { FaTrash, FaEdit, FaFilter } from "react-icons/fa";
+import { Button, Modal, Spinner } from "react-bootstrap";
+import {
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+  FaAngleLeft,
+  FaAngleRight,
+  FaEdit,
+  FaExclamationTriangle,
+  FaFilter,
+  FaTimes,
+  FaTrash,
+  FaUsers,
+} from "react-icons/fa";
 import PersonDetails from "./person-details.jsx";
 import { useMediaQuery } from "../../../hooks/useMediaQuery";
 import { validatePersonField } from "../../../utils/validation";
 
 const Table = ({
   title,
-  headings,
+  columns,
   data,
-  excludedKeys,
+  loading = false,
+  initialLoading = false,
+  error = false,
+  onRetry,
   currentPage,
   totalPages,
   onPageChange,
   deleteItem,
-  importantKeys,
-  importantHeadings,
   updatePersonInList,
   onPersonClick,
   onPersonUpdate,
   showSuccess,
   showError,
   hasActiveFilters = false,
+  onClearFilters,
   onPersonRowClick,
+  openingPersonId = null,
 }) => {
-  const [selectedPerson, setSelectedPerson] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [editablePerson, setEditablePerson] = useState(null);
+  const [personToDelete, setPersonToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const handleNameClick = async (id) => {
-    setIsLoading(true);
+  const visibleColumns = isMobile
+    ? columns.filter((column) => column.important)
+    : columns;
+
+  const handleEditClick = async (id) => {
+    // Open the modal straight away and show a spinner while loading
+    setEditingId(id);
+    setEditablePerson(null);
     try {
       const person = await onPersonClick(id);
-      setSelectedPerson(person);
       setEditablePerson(person);
     } catch (error) {
       console.error("Error fetching person details:", error);
-    } finally {
-      setIsLoading(false);
+      showError("Error loading person details. Please try again.");
+      setEditingId(null);
     }
   };
 
   const handleClose = () => {
-    setSelectedPerson(null);
+    setEditingId(null);
     setEditablePerson(null);
   };
 
@@ -59,7 +80,6 @@ const Table = ({
         editablePerson,
       );
       updatePersonInList(updatedPerson);
-      setSelectedPerson(updatedPerson);
       return { success: true };
     } catch (error) {
       console.error("Error updating person details:", error);
@@ -67,208 +87,285 @@ const Table = ({
     }
   };
 
-  const renderCell = (item, key) => (
-    <td key={key} className="py-2 px-2 small">
-      <span >{item[key]}</span>
-    </td>
-  );
-
-  const renderHeading = (heading, index) => (
-    <th
-      key={index}
-      className="py-2 px-2 fw-semibold text-uppercase text-muted border-bottom small"
-    >
-      {heading}
-    </th>
-  );
-
-  const renderMobileCell = (item, key) => {
-    if (importantKeys && importantKeys.length > 0) {
-      if (importantKeys.includes(key)) {
-        return renderCell(item, key);
-      }
-    } else {
-      return renderCell(item, key);
-    }
-    return null;
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    await deleteItem(personToDelete.id);
+    setIsDeleting(false);
+    setPersonToDelete(null);
   };
 
-  const renderMobileHeading = (heading, index) => {
-    if (importantHeadings && importantHeadings.length > 0) {
-      if (importantHeadings.includes(heading)) {
-        return renderHeading(heading, index);
-      }
-    } else {
-      return renderHeading(heading, index);
-    }
-    return null;
-  };
-
-  const renderDesktopCell = (item, key) => renderCell(item, key);
-  const renderDesktopHeading = (heading, index) =>
-    renderHeading(heading, index);
-
-  const renderTable = () => (
-    <div
-      className="card border-0 shadow-sm overflow-hidden"
-      style={{ minHeight: "75vh", maxHeight: "75vh" }}
-    >
-      <div className="card-body p-3 d-flex flex-column h-100">
-        <div className="p-1 pb-2">
-          <div className="d-flex align-items-center justify-content-between">
-            <h5 className="mb-1 fw-semibold text-primary">{title}</h5>
-            {hasActiveFilters && (
-              <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
-                <FaFilter size={10} />
-                Filtered
-              </span>
-            )}
-          </div>
+  const renderBody = () => {
+    if (initialLoading) {
+      return (
+        <div className="empty-state">
+          <Spinner className="spinner-border-lg mb-3" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+          <p className="mb-0">Loading persons...</p>
         </div>
+      );
+    }
 
-        <div className="flex-grow-1 overflow-auto">
-          {data.length === 0 ? (
-            <div className="text-center py-5">
-              <p className="text-muted mb-0">No records found</p>
-            </div>
-          ) : (
-            <table className="table table-hover mb-0">
-              <thead className="sticky-top bg-body">
-                <tr>
-                  {isMobile
-                    ? headings.map((heading, index) =>
-                        renderMobileHeading(heading, index),
-                      )
-                    : headings.map((heading, index) =>
-                        renderDesktopHeading(heading, index),
-                      )}
-                  <th
-                    className="py-2 px-2 border-bottom text-center text-uppercase text-muted"
-                    style={{ width: "80px" }}
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item, index) => (
-                  <tr
-                    key={index}
-                    onClick={() => onPersonRowClick && onPersonRowClick(item.id)}
-                    style={{ cursor: onPersonRowClick ? 'pointer' : 'default' }}
-                    className="person-row"
-                  >
-                    {Object.keys(item)
-                      .filter((key) => !excludedKeys.includes(key))
-                      .map((key) =>
-                        isMobile
-                          ? renderMobileCell(item, key)
-                          : renderDesktopCell(item, key),
-                      )}
-                    <td className="py-2 px-2 text-center">
-                      <button
-                        className="btn btn-link p-0 m-0 text-primary me-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleNameClick(item.id);
-                        }}
-                        title="Edit"
-                      >
-                        <FaEdit size={13} />
-                      </button>
-                      <button
-                        className="btn btn-link p-0 m-0 text-danger"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteItem(item.id);
-                        }}
-                        title="Delete"
-                      >
-                        <FaTrash size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    if (error) {
+      return (
+        <div className="empty-state">
+          <span className="icon-badge text-danger bg-danger-subtle">
+            <FaExclamationTriangle size={18} />
+          </span>
+          <p className="fw-semibold text-body mb-1">Couldn't load persons</p>
+          <p className="small mb-3">
+            Something went wrong while contacting the API.
+          </p>
+          <Button size="sm" variant="outline-primary" onClick={onRetry}>
+            Try again
+          </Button>
+        </div>
+      );
+    }
+
+    if (data.length === 0) {
+      return (
+        <div className="empty-state">
+          <span className="icon-badge">
+            {hasActiveFilters ? <FaFilter size={18} /> : <FaUsers size={18} />}
+          </span>
+          <p className="fw-semibold text-body mb-1">
+            {hasActiveFilters ? "No matching records" : "No persons yet"}
+          </p>
+          <p className="small mb-3">
+            {hasActiveFilters
+              ? "Try adjusting or clearing your search filters."
+              : "Use the form to add your first person."}
+          </p>
+          {hasActiveFilters && (
+            <Button
+              size="sm"
+              variant="outline-primary"
+              onClick={onClearFilters}
+            >
+              Clear filters
+            </Button>
           )}
         </div>
+      );
+    }
 
-        <div className="border-top p-2 bg-body-tertiary">
-          <nav aria-label="Page navigation">
-            <ul className="pagination pagination-sm mb-0 justify-content-center">
-              <li
-                className={`page-item ${currentPage === 0 ? "disabled" : ""}`}
+    return (
+      <table
+        className={`table table-hover mb-0 ${onPersonRowClick ? "table-clickable" : ""} ${loading ? "table-loading" : ""}`}
+        aria-busy={loading}
+      >
+        <thead className="sticky-top">
+          <tr>
+            {visibleColumns.map((column) => (
+              <th
+                key={column.key}
+                scope="col"
+                className="py-2 px-3 fw-semibold text-uppercase"
               >
-                <button
-                  className="page-link small"
-                  onClick={() => onPageChange(0)}
-                  disabled={currentPage === 0}
+                {column.label}
+              </th>
+            ))}
+            <th scope="col" className="py-2 px-3 text-uppercase text-end">
+              <span className="visually-hidden">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr
+              key={item.id}
+              onClick={() => onPersonRowClick && onPersonRowClick(item.id)}
+              className={openingPersonId === item.id ? "table-active" : ""}
+            >
+              {visibleColumns.map((column, index) => (
+                <td
+                  key={column.key}
+                  className={`py-2 px-3 small ${index === 0 ? "fw-medium" : "text-body-secondary"}`}
                 >
-                  First
-                </button>
-              </li>
-              <li
-                className={`page-item ${currentPage === 0 ? "disabled" : ""}`}
-              >
-                <button
-                  className="page-link small"
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage === 0}
-                >
-                  Previous
-                </button>
-              </li>
-              <li className="page-item disabled">
-                <span className="page-link small">
-                  Page {currentPage + 1} of {totalPages || 1}
-                </span>
-              </li>
-              <li
-                className={`page-item ${totalPages === 0 || currentPage === totalPages - 1 ? "disabled" : ""}`}
-              >
-                <button
-                  className="page-link small"
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={totalPages === 0 || currentPage === totalPages - 1}
-                >
-                  Next
-                </button>
-              </li>
-              <li
-                className={`page-item ${totalPages === 0 || currentPage === totalPages - 1 ? "disabled" : ""}`}
-              >
-                <button
-                  className="page-link small"
-                  onClick={() => onPageChange(totalPages - 1)}
-                  disabled={totalPages === 0 || currentPage === totalPages - 1}
-                >
-                  Last
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </div>
+                  {item[column.key] == null || item[column.key] === ""
+                    ? "—"
+                    : item[column.key]}
+                </td>
+              ))}
+              <td className="py-1 px-2 text-end text-nowrap">
+                {openingPersonId === item.id ? (
+                  <Spinner size="sm" className="me-2" role="status">
+                    <span className="visually-hidden">Opening...</span>
+                  </Spinner>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(item.id);
+                      }}
+                      title="Edit"
+                      aria-label={`Edit ${item.firstName}`}
+                    >
+                      <FaEdit size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-icon btn-icon-danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPersonToDelete(item);
+                      }}
+                      title="Delete"
+                      aria-label={`Delete ${item.firstName}`}
+                    >
+                      <FaTrash size={13} />
+                    </button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
+
+  const isFirstPage = currentPage === 0;
+  const isLastPage = totalPages === 0 || currentPage === totalPages - 1;
+
+  const renderPageButton = (label, icon, page, disabled) => (
+    <li className={`page-item ${disabled ? "disabled" : ""}`}>
+      <button
+        type="button"
+        className="page-link d-flex align-items-center h-100"
+        onClick={() => onPageChange(page)}
+        disabled={disabled || loading}
+        aria-label={label}
+        title={label}
+      >
+        {icon}
+      </button>
+    </li>
   );
 
   return (
-    <div>
-      {renderTable()}
+    <div className="h-100">
+      <div className="card border-0 overflow-hidden panel-card d-flex flex-column">
+        <div className="card-header d-flex align-items-center justify-content-between gap-2">
+          <h5 className="mb-0 fw-semibold d-flex align-items-center gap-2">
+            {title}
+            {loading && !initialLoading && (
+              <Spinner size="sm" role="status">
+                <span className="visually-hidden">Refreshing...</span>
+              </Spinner>
+            )}
+          </h5>
+          {hasActiveFilters && (
+            <span className="badge rounded-pill text-bg-warning d-flex align-items-center gap-1">
+              <FaFilter size={9} />
+              Filtered
+              <button
+                type="button"
+                className="btn p-0 ms-1 lh-1 border-0"
+                onClick={onClearFilters}
+                aria-label="Clear filters"
+                title="Clear filters"
+              >
+                <FaTimes size={10} />
+              </button>
+            </span>
+          )}
+        </div>
 
-      {editablePerson && (
-        <PersonDetails
-          show={!!selectedPerson}
-          isLoading={isLoading}
-          editablePerson={editablePerson}
-          handleInputChange={handleInputChange}
-          handleUpdate={handleUpdate}
-          handleClose={handleClose}
-          showSuccess={showSuccess}
-          showError={showError}
-        />
-      )}
+        <div className="flex-grow-1 overflow-auto">{renderBody()}</div>
+
+        {!initialLoading && !error && totalPages > 0 && (
+          <div className="border-top px-3 py-2 d-flex align-items-center justify-content-between gap-2 bg-body-tertiary">
+            <span className="small text-body-secondary">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <nav aria-label="Page navigation">
+              <ul className="pagination pagination-sm mb-0">
+                {renderPageButton(
+                  "First page",
+                  <FaAngleDoubleLeft />,
+                  0,
+                  isFirstPage,
+                )}
+                {renderPageButton(
+                  "Previous page",
+                  <FaAngleLeft />,
+                  currentPage - 1,
+                  isFirstPage,
+                )}
+                {renderPageButton(
+                  "Next page",
+                  <FaAngleRight />,
+                  currentPage + 1,
+                  isLastPage,
+                )}
+                {renderPageButton(
+                  "Last page",
+                  <FaAngleDoubleRight />,
+                  totalPages - 1,
+                  isLastPage,
+                )}
+              </ul>
+            </nav>
+          </div>
+        )}
+      </div>
+
+      <PersonDetails
+        show={editingId !== null}
+        isLoading={editablePerson === null}
+        editablePerson={editablePerson}
+        handleInputChange={handleInputChange}
+        handleUpdate={handleUpdate}
+        handleClose={handleClose}
+        showSuccess={showSuccess}
+        showError={showError}
+      />
+
+      <Modal
+        show={personToDelete !== null}
+        onHide={() => !isDeleting && setPersonToDelete(null)}
+        centered
+        size="sm"
+      >
+        <Modal.Body className="p-4 text-center">
+          <span className="icon-badge text-danger bg-danger-subtle mb-3">
+            <FaTrash size={16} />
+          </span>
+          <h5 className="fw-semibold">Delete person?</h5>
+          <p className="text-body-secondary small mb-0">
+            <strong className="text-body">
+              {[personToDelete?.firstName, personToDelete?.lastName]
+                .filter(Boolean)
+                .join(" ")}
+            </strong>{" "}
+            will be permanently removed. This can't be undone.
+          </p>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0 px-4 pb-4 d-flex gap-2">
+          <Button
+            variant="outline-secondary"
+            className="flex-grow-1"
+            onClick={() => setPersonToDelete(null)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-grow-1"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting && <Spinner size="sm" className="me-2 text-white" />}
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
