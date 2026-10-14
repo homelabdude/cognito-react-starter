@@ -28,7 +28,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-private-property-in-object": "^8.0.5",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/ui": "^5.0.3",
     "jsdom": "^27.3.0",
